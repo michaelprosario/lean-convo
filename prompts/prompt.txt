@@ -7,3 +7,14 @@
 ===
 - setup a docker-compose file for local dev using mongodb
 - document docker-compose.yaml
+===
+- Edit prompts/techPlan.md
+- In a future state, we might use Angular for the front-end.  For today, we want to prototype screens using HTML/CSS/Javascript.  Please favor returning DTO's from the controllers.
+===
+- Review prompts/techStack.md
+- Review prompts/techPlan.md
+- We want to setup for an organizer to create a session.
+- Implement use cases for the following:
+    - Create account
+    - Login using existing account
+

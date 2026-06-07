@@ -14,7 +14,8 @@ The codebase follows the dependency rule strictly — **all dependencies point i
 |---|---|---|
 | Core | `src/core/` | Domain entities, interfaces, use-case services, command/query objects, `AppResult<T>` |
 | Infrastructure | `src/infra/` | MongoDB/Mongoose repositories, WebSocket gateway, any external services |
-| Web/UI | `src/web/` | NestJS controllers, HTTP routing, serialization, module wiring |
+| Web/UI | `src/web/` | NestJS controllers, HTTP routing, DTO serialization, module wiring |
+| Prototype UI | `public/` | Static HTML/CSS/JS screens served directly by NestJS |
 
 ### Key Rules Applied
 - `core/` has **zero dependencies** on NestJS, Mongoose, or any infrastructure package.
@@ -22,6 +23,7 @@ The codebase follows the dependency rule strictly — **all dependencies point i
 - Every core use-case service accepts a **Command or Query object** as input.
 - Every core use-case service returns an **`AppResult<T>`** object — never throws for expected business failures.
 - All core services have corresponding **Jest unit tests** with `ts-mockito` mocks.
+- **Controllers always return explicit DTO classes** — domain entities are never serialized directly to the HTTP response. This decouples the API contract from the internal model and makes the eventual Angular migration straightforward.
 
 ---
 
@@ -39,6 +41,8 @@ The codebase follows the dependency rule strictly — **all dependencies point i
 | Mocking | ts-mockito |
 | Auth | JWT (`@nestjs/jwt` + `@nestjs/passport`) |
 | Validation | `class-validator` + `class-transformer` (NestJS pipes) |
+| Front-End (prototype) | Vanilla HTML / CSS / JavaScript (static files served by NestJS) |
+| Front-End (future) | Angular (SPA, consuming the same REST + WebSocket API) |
 
 ---
 
@@ -114,6 +118,23 @@ src/
 │   └── real-time/
 │       └── session.gateway.ts     # WebSocket gateway (socket.io)
 ├── web/
+│   ├── dtos/                          # Response & request DTO classes
+│   │   ├── auth/
+│   │   │   ├── register-request.dto.ts
+│   │   │   ├── login-request.dto.ts
+│   │   │   └── auth-token.dto.ts
+│   │   ├── sessions/
+│   │   │   ├── create-session-request.dto.ts
+│   │   │   ├── edit-session-request.dto.ts
+│   │   │   └── session.dto.ts
+│   │   ├── topics/
+│   │   │   ├── propose-topic-request.dto.ts
+│   │   │   ├── upvote-topic-request.dto.ts
+│   │   │   ├── set-topic-status-request.dto.ts
+│   │   │   └── topic.dto.ts
+│   │   └── participants/
+│   │       ├── join-session-request.dto.ts
+│   │       └── participant.dto.ts
 │   ├── auth/
 │   │   ├── auth.controller.ts
 │   │   └── auth.module.ts
@@ -126,6 +147,18 @@ src/
 │   └── participants/
 │       ├── participants.controller.ts
 │       └── participants.module.ts
+├── public/                            # Prototype HTML/CSS/JS screens
+│   ├── index.html                     # Landing / join page
+│   ├── login.html
+│   ├── register.html
+│   ├── dashboard.html                 # Organizer session list
+│   ├── session.html                   # Live session view (organizer)
+│   ├── participate.html               # Live session view (participant)
+│   ├── css/
+│   │   └── styles.css
+│   └── js/
+│       ├── api.js                     # Thin fetch-based API client
+│       └── socket.js                  # socket.io client helpers
 ├── app.module.ts
 └── main.ts
 ```
@@ -243,6 +276,16 @@ export class AppResult<T = void> {
 
 All mutation and query endpoints use **HTTP POST** as per tech stack conventions.
 
+### DTO Convention
+Every controller method maps its input to a request DTO (validated by NestJS `ValidationPipe`) and maps the use-case result to an explicit **response DTO** before returning. Domain entities are never returned directly from controllers. This keeps the API contract stable and independent of internal model changes, and ensures the prototype HTML/JS clients and a future Angular client consume the same typed contract.
+
+Example shape:
+```
+POST /sessions/create
+  ← CreateSessionRequestDto  { title, description, videoLink?, maxVotesPerParticipant }
+  → SessionDto               { id, title, description, videoLink, shareCode, maxVotesPerParticipant, createdAt }
+```
+
 ### Auth (`/auth`)
 | Endpoint | Use Case | Request Body |
 |---|---|---|
@@ -352,10 +395,40 @@ Output format: **CSV** (initial implementation). A JSON format may also be offer
 
 | Phase | Deliverables |
 |---|---|
-| 1 – Foundation | Project scaffold, folder structure, `AppResult<T>`, domain entities, repository interfaces |
-| 2 – Auth | UC-01, UC-02 with JWT; `UserMongooseRepository` |
-| 3 – Session Management | UC-03, UC-04, UC-09; session and participant repositories |
-| 4 – Topics (HTTP) | UC-05, UC-06, UC-10, UC-11 over HTTP |
-| 5 – Real-Time | `SessionGateway`, WebSocket integration for UC-06, UC-10, UC-11, UC-08/12 |
-| 6 – Export | UC-07 CSV export |
-| 7 – Testing & Polish | Full unit test coverage for all core use cases, integration tests |
+| 1 – Foundation | Project scaffold, folder structure, `AppResult<T>`, domain entities, repository interfaces, DTO classes |
+| 2 – Auth | UC-01, UC-02 with JWT; `UserMongooseRepository`; auth DTOs |
+| 3 – Session Management | UC-03, UC-04, UC-09; session and participant repositories; session/participant DTOs |
+| 4 – Topics (HTTP) | UC-05, UC-06, UC-10, UC-11 over HTTP; topic DTOs |
+| 5 – Prototype UI | Static HTML/CSS/JS screens in `public/` wired to the REST API |
+| 6 – Real-Time | `SessionGateway`, WebSocket integration for UC-06, UC-10, UC-11, UC-08/12 |
+| 7 – Export | UC-07 CSV export |
+| 8 – Testing & Polish | Full unit test coverage for all core use cases, integration tests |
+| Future – Angular | Replace `public/` prototype with an Angular SPA; API contract unchanged |
+
+---
+
+## 15. Front-End Strategy
+
+### Current: HTML / CSS / JavaScript Prototype
+
+Prototype screens are plain static files served by NestJS from the `public/` directory (`ServeStaticModule`). They use the `fetch` API to call the REST endpoints and `socket.io-client` for real-time updates. No build step is required for the prototype.
+
+**Screens planned:**
+
+| File | Purpose |
+|---|---|
+| `index.html` | Landing page; join session by code |
+| `register.html` | UC-01 Create Account |
+| `login.html` | UC-02 Login |
+| `dashboard.html` | Organizer's session list |
+| `session.html` | Organizer live session view (topic lifecycle, status controls) |
+| `participate.html` | Participant live session view (propose, upvote, real-time feed) |
+
+### Future: Angular SPA
+
+When the product matures, the `public/` prototype will be replaced by an Angular application. Because:
+- All controllers return **DTOs** (not domain entities), the API contract is already clean and typed.
+- Real-time communication is handled by a dedicated WebSocket gateway — Angular will simply swap in `socket.io-client` services.
+- JWT auth is stateless, so the Angular `HttpInterceptor` pattern applies without backend changes.
+
+The NestJS backend requires **no structural changes** for the Angular migration.
