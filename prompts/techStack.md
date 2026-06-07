@@ -1,0 +1,7 @@
+- NestJs
+- Unit testing: Jest
+- Mocking framework: ts-mockito
+- Database: mongodb
+- ORM: nestjs/mongoose
+- When real time communication is required, leverage web socket gateway
+- Leverage standard HTTP apis in all other cases.  Favor using POSTS for all HTTP apis

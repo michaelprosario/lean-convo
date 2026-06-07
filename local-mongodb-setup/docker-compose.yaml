@@ -1,0 +1,105 @@
+# docker-compose.yaml – Lean Convo Local Development Environment
+#
+# Usage:
+#   Start all services:   docker compose up -d
+#   Stop all services:    docker compose down
+#   Destroy volumes too:  docker compose down -v
+#   View logs:            docker compose logs -f
+#
+# Services defined here:
+#   - mongodb   : MongoDB instance for local development
+#   - mongo-express : Browser-based MongoDB admin UI (optional convenience tool)
+
+version: '3.9'
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # MongoDB
+  # ---------------------------------------------------------------------------
+  # Primary data store for Lean Convo.
+  # Exposed on the default port 27017 so the NestJS app (running on the host
+  # or in another container) can connect via:
+  #   mongodb://lean_user:lean_pass@localhost:27017/lean_convo?authSource=lean_convo
+  #
+  # On first start the init script creates the application database and user
+  # automatically via the MONGO_INITDB_* environment variables.
+  # Data is persisted in the named volume `mongo_data` so it survives restarts.
+  # ---------------------------------------------------------------------------
+  mongodb:
+    image: mongo:7.0
+    container_name: lean_convo_mongo
+    restart: unless-stopped
+    environment:
+      # Root credentials – used only during initialisation.
+      # Change these before deploying to any shared environment.
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: changeMe123!
+
+      # Application database created automatically on first boot.
+      MONGO_INITDB_DATABASE: lean_convo
+    ports:
+      # host:container – bind only to localhost to avoid exposing the DB on
+      # all network interfaces of the development machine.
+      - "127.0.0.1:27017:27017"
+    volumes:
+      # Named volume for persistent data storage across container restarts.
+      - mongo_data:/data/db
+      # Seed / init scripts placed here are executed once on first boot.
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - lean_convo_net
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Mongo Express (optional admin UI)
+  # ---------------------------------------------------------------------------
+  # A lightweight web UI for browsing and editing MongoDB data during
+  # development.  Access it at http://localhost:8081
+  # Username: admin  /  Password: admin  (local dev only)
+  #
+  # Remove or comment out this service if you do not need it.
+  # ---------------------------------------------------------------------------
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: lean_convo_mongo_express
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: changeMe123!
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: "27017"
+      # Basic auth was removed in mongo-express 1.x; disable it explicitly.
+      # Safe for local dev since the port is bound to 127.0.0.1 only.
+      ME_CONFIG_BASICAUTH: "false"
+    ports:
+      - "127.0.0.1:8081:8081"
+    networks:
+      - lean_convo_net
+
+# -----------------------------------------------------------------------------
+# Named Volumes
+# -----------------------------------------------------------------------------
+volumes:
+  mongo_data:
+    # Stores MongoDB data files on the Docker-managed volume so that data
+    # persists across `docker compose down` restarts.
+    driver: local
+
+# -----------------------------------------------------------------------------
+# Networks
+# -----------------------------------------------------------------------------
+networks:
+  lean_convo_net:
+    # Isolated bridge network so services can communicate by service name
+    # (e.g. the NestJS app can reach MongoDB via hostname "mongodb") while
+    # remaining isolated from other Docker projects on the same host.
+    driver: bridge

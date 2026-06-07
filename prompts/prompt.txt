@@ -1,0 +1,9 @@
+6/7
+- follow prompts/cleanArchitecture.md
+- leverage insight from prompts/nestJs.md
+- follow tech stack decisions: prompts/techStack.md
+- think about the use cases here: prompts/useCases.md
+- document technical approach for the app in techPlan.md
+===
+- setup a docker-compose file for local dev using mongodb
+- document docker-compose.yaml
