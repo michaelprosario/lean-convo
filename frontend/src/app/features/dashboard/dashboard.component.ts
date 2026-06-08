@@ -209,6 +209,43 @@ import { Session } from '../../core/models/session.types';
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.05);
     }
+    
+    @media (max-width: 600px) {
+      .topbar {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+      }
+      .section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        text-align: center;
+      }
+      .header-actions {
+        justify-content: center;
+      }
+      .session-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1.25rem;
+      }
+      .session-card__info {
+        text-align: left;
+      }
+      .session-card__actions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        width: 100%;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 0.75rem;
+      }
+      .session-card__code {
+        margin-right: auto;
+      }
+    }
   `]
 })
 export class DashboardComponent implements OnInit {

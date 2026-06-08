@@ -14,7 +14,12 @@ import { Topic, TopicStatus } from '../../../core/models/topic.types';
     <div class="organizer-session-page">
       <!-- Top bar -->
       <div class="topbar">
-        <h1 class="logo-title">Organizer Control Panel</h1>
+        <div>
+          <h1 class="logo-title">Organizer Control Panel</h1>
+          @if (sessionJoinCode) {
+            <p class="invite-code-subtitle">Invite Code: <span class="invite-code">{{ sessionJoinCode }}</span></p>
+          }
+        </div>
         <div class="topbar-actions">
           <a routerLink="/dashboard" class="btn btn-outline btn-sm">Back to Dashboard</a>
           <button class="btn btn-outline btn-sm" (click)="onRefresh()">Refresh</button>
@@ -146,6 +151,22 @@ import { Topic, TopicStatus } from '../../../core/models/topic.types';
       -webkit-text-fill-color: transparent;
       font-weight: 800;
     }
+    .invite-code-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+    .invite-code {
+      font-family: monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px dashed rgba(56, 189, 248, 0.3);
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      margin-left: 0.25rem;
+    }
     .topbar-actions {
       display: flex;
       gap: 0.75rem;
@@ -251,11 +272,37 @@ import { Topic, TopicStatus } from '../../../core/models/topic.types';
       &.err { color: var(--alert-error-text); }
     }
     @media (max-width: 600px) {
+      .topbar {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        text-align: center;
+      }
+      .topbar-actions {
+        justify-content: center;
+        width: 100%;
+      }
       .form-grid {
         grid-template-columns: 1fr;
       }
       .full-width {
         grid-column: span 1;
+      }
+      .actions-row {
+        justify-content: center;
+        width: 100%;
+      }
+      .actions-row .btn {
+        width: 100%;
+      }
+      .topic-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      .topic-meta {
+        flex-direction: column;
+        gap: 0.4rem;
       }
     }
   `]

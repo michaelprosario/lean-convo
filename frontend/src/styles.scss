@@ -274,3 +274,16 @@ textarea {
     font-size: 0.9rem;
   }
 }
+
+/* ===== Mobile Responsiveness Base ===== */
+@media (max-width: 480px) {
+  body {
+    padding: 1rem 0.75rem;
+  }
+  .card {
+    padding: 1.5rem 1.25rem;
+  }
+  .card__logo h1 {
+    font-size: 1.8rem;
+  }
+}

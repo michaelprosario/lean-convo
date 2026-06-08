@@ -410,12 +410,31 @@ import { Topic } from '../../../core/models/topic.types';
       margin-top: 0.4rem;
     }
     @media (max-width: 550px) {
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+      }
+      .topbar__right {
+        align-self: flex-start;
+      }
       .propose-row {
         flex-direction: column;
         align-items: stretch;
       }
       .btn-propose {
         align-self: stretch;
+      }
+      .topic-card {
+        padding: 1rem;
+        gap: 0.75rem;
+      }
+      .vote-col {
+        min-width: 36px;
+      }
+      .vote-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
       }
     }
   `]

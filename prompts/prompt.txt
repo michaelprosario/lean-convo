@@ -127,3 +127,5 @@ Address the following error..
 - explore frontend angular project
 - think about moving html/js features backend/public into well organized frontend angular project.
 - document plan in angularFrontEnd.md
+===
+- update frontend code to make it more responsive on mobile.
