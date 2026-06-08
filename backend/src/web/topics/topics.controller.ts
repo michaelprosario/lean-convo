@@ -1,19 +1,26 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Request, UseGuards } from '@nestjs/common';
 import { ProposeTopicUseCase } from '../../core/use-cases/topics/propose-topic.use-case';
 import { UpvoteTopicUseCase } from '../../core/use-cases/topics/upvote-topic.use-case';
 import { EditTopicUseCase } from '../../core/use-cases/topics/edit-topic.use-case';
 import { DeleteTopicUseCase } from '../../core/use-cases/topics/delete-topic.use-case';
 import { GetSessionTopicsUseCase } from '../../core/use-cases/topics/get-session-topics.use-case';
+import { OrganizerEditTopicUseCase } from '../../core/use-cases/topics/organizer-edit-topic.use-case';
+import { SetTopicStatusUseCase } from '../../core/use-cases/topics/set-topic-status.use-case';
 import { ProposeTopicCommand } from '../../core/commands/propose-topic.command';
 import { UpvoteTopicCommand } from '../../core/commands/upvote-topic.command';
 import { EditTopicCommand } from '../../core/commands/edit-topic.command';
 import { DeleteTopicCommand } from '../../core/commands/delete-topic.command';
+import { OrganizerEditTopicCommand } from '../../core/commands/organizer-edit-topic.command';
+import { SetTopicStatusCommand } from '../../core/commands/set-topic-status.command';
 import { ProposeTopicDto } from './dto/propose-topic.dto';
 import { UpvoteTopicDto } from './dto/upvote-topic.dto';
 import { EditTopicDto } from './dto/edit-topic.dto';
 import { DeleteTopicDto } from './dto/delete-topic.dto';
+import { OrganizerEditTopicDto } from './dto/organizer-edit-topic.dto';
+import { SetTopicStatusDto } from './dto/set-topic-status.dto';
 import { TopicResponseDto } from './dto/topic-response.dto';
 import { AppResult } from '../../core/results/app-result';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @Controller('topics')
 export class TopicsController {
@@ -23,6 +30,8 @@ export class TopicsController {
     private readonly editTopicUseCase: EditTopicUseCase,
     private readonly deleteTopicUseCase: DeleteTopicUseCase,
     private readonly getSessionTopicsUseCase: GetSessionTopicsUseCase,
+    private readonly organizerEditTopicUseCase: OrganizerEditTopicUseCase,
+    private readonly setTopicStatusUseCase: SetTopicStatusUseCase,
   ) {}
 
   @Post('propose')
@@ -97,6 +106,46 @@ export class TopicsController {
     }
 
     return AppResult.ok(result.data!.map((t) => this.toDto(t)));
+  }
+
+  @Post('organizer/edit')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async organizerEdit(
+    @Request() req: { user: { userId: string; email: string } },
+    @Body() dto: OrganizerEditTopicDto,
+  ): Promise<AppResult<TopicResponseDto>> {
+    const command = new OrganizerEditTopicCommand(
+      dto.topicId,
+      req.user.userId,
+      dto.title,
+      dto.description ?? '',
+    );
+
+    const result = await this.organizerEditTopicUseCase.execute(command);
+
+    if (!result.success) {
+      return AppResult.fail(result.errorMessage!);
+    }
+
+    return AppResult.ok(this.toDto(result.data!));
+  }
+
+  @Post('organizer/set-status')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async setStatus(
+    @Request() req: { user: { userId: string; email: string } },
+    @Body() dto: SetTopicStatusDto,
+  ): Promise<AppResult<TopicResponseDto>> {
+    const command = new SetTopicStatusCommand(dto.topicId, req.user.userId, dto.status);
+    const result = await this.setTopicStatusUseCase.execute(command);
+
+    if (!result.success) {
+      return AppResult.fail(result.errorMessage!);
+    }
+
+    return AppResult.ok(this.toDto(result.data!));
   }
 
   private toDto(topic: import('../../core/domain/topic.entity').TopicEntity): TopicResponseDto {

@@ -55,3 +55,20 @@ Update index.html - Enable user to navigate to "join session"
 
 ===
 
+Think about features for the organizer
+- Organizer can edit session
+- Organizer can edit session topics
+- Organizer can set status of topics
+(Todo, Active, Done)
+- Organizer can export session and topic details
+
+Think about front-end and backend edits
+
+Document in organizerSessionEdits.md
+
+===
+
+Update session.html
+- Active topics should be displayed first
+- Todo topics should be displayed next
+- Completed topics should be displayed last

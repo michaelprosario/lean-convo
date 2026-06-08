@@ -12,6 +12,8 @@ import { UpvoteTopicUseCase } from '../../core/use-cases/topics/upvote-topic.use
 import { EditTopicUseCase } from '../../core/use-cases/topics/edit-topic.use-case';
 import { DeleteTopicUseCase } from '../../core/use-cases/topics/delete-topic.use-case';
 import { GetSessionTopicsUseCase } from '../../core/use-cases/topics/get-session-topics.use-case';
+import { OrganizerEditTopicUseCase } from '../../core/use-cases/topics/organizer-edit-topic.use-case';
+import { SetTopicStatusUseCase } from '../../core/use-cases/topics/set-topic-status.use-case';
 import { TOPIC_REPOSITORY } from '../../core/interfaces/topic.repository.interface';
 import { PARTICIPANT_REPOSITORY } from '../../core/interfaces/participant.repository.interface';
 import { SESSION_REPOSITORY } from '../../core/interfaces/session.repository.interface';
@@ -35,6 +37,8 @@ import { TopicsController } from './topics.controller';
     EditTopicUseCase,
     DeleteTopicUseCase,
     GetSessionTopicsUseCase,
+    OrganizerEditTopicUseCase,
+    SetTopicStatusUseCase,
   ],
 })
 export class TopicsModule {}

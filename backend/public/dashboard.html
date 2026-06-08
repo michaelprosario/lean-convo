@@ -175,6 +175,7 @@
             </div>
             <div style="display:flex;align-items:center;gap:0.6rem;">
               <span class="session-card__code" title="Join code">${escapeHtml(session.joinCode)}</span>
+              <a href="/organizer-session.html?sessionId=${encodeURIComponent(session.id)}" class="btn-outline btn-sm" style="font-size:0.8rem;padding:0.3rem 0.75rem;">Manage</a>
               <a href="/join.html?code=${encodeURIComponent(session.joinCode)}" class="btn-outline btn-sm" style="font-size:0.8rem;padding:0.3rem 0.75rem;">Join</a>
             </div>
           `;
