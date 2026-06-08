@@ -72,3 +72,51 @@ Update session.html
 - Active topics should be displayed first
 - Todo topics should be displayed next
 - Completed topics should be displayed last
+
+===
+
+Update session.html
+- Make sure to display the following elements:
+    - session title
+    - session description
+    - meeting link if it exists
+
+=== 
+
+Address the following error..
+
+(node:25620) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[Nest] 25620  - 06/08/2026, 2:04:24 AM   ERROR [ExceptionsHandler] MongoServerError: E11000 duplicate key error collection: lean_convo.sessions index: shareCode_1 dup key: { shareCode: null }
+    at InsertOneOperation.handleOk (/workspaces/lean-convo/backend/node_modules/mongodb/src/operations/insert.ts:79:13)
+    at executeOperationWithRetries (/workspaces/lean-convo/backend/node_modules/mongodb/src/operations/execute_operation.ts:267:26)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async executeOperation (/workspaces/lean-convo/backend/node_modules/mongodb/src/operations/execute_operation.ts:127:12)
+    at async Collection.insertOne (/workspaces/lean-convo/backend/node_modules/mongodb/src/collection.ts:294:12)
+    at async model.$__save (/workspaces/lean-convo/backend/node_modules/mongoose/lib/model.js:428:16)
+    at async model.save (/workspaces/lean-convo/backend/node_modules/mongoose/lib/model.js:667:5)
+    at async SessionRepository.create (/workspaces/lean-convo/backend/src/infra/repositories/session.repository.ts:14:19)
+    at async CreateSessionUseCase.execute (/workspaces/lean-convo/backend/src/core/use-cases/sessions/create-session.use-case.ts:30:21)
+    at async SessionsController.createSession (/workspaces/lean-convo/backend/src/web/sessions/sessions.controller.ts:45:20) {
+  errorLabelSet: Set(0) {},
+  errorResponse: {
+    index: 0,
+    code: 11000,
+    errmsg: 'E11000 duplicate key error collection: lean_convo.sessions index: shareCode_1 dup key: { shareCode: null }',
+    keyPattern: {
+      shareCode: 1
+    },
+    keyValue: {
+      shareCode: null
+    }
+  },
+  index: 0,
+  code: 11000,
+  keyPattern: {
+    shareCode: 1
+  },
+  keyValue: {
+    shareCode: null
+  }
+}
+

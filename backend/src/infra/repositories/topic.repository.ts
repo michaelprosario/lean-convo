@@ -26,7 +26,9 @@ export class TopicRepository implements ITopicRepository {
   }
 
   async update(id: string, partial: Partial<TopicEntity>): Promise<TopicEntity | null> {
-    const doc = await this.topicModel.findByIdAndUpdate(id, partial, { new: true }).exec();
+    const doc = await this.topicModel
+      .findByIdAndUpdate(id, partial, { returnDocument: 'after' })
+      .exec();
     return doc ? this.toEntity(doc) : null;
   }
 

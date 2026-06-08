@@ -158,6 +158,8 @@
         sessionStorage.setItem('participantName', participant.name);
         sessionStorage.setItem('sessionId', session.id);
         sessionStorage.setItem('sessionTitle', session.title);
+        sessionStorage.setItem('sessionDescription', session.description || '');
+        sessionStorage.setItem('sessionVideoLink', session.videoLink || '');
         sessionStorage.setItem('maxUpvotes', String(session.maxUpvotesPerParticipant));
 
         window.location.href = '/session.html';

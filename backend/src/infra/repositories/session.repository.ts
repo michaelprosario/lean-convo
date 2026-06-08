@@ -26,12 +26,18 @@ export class SessionRepository implements ISessionRepository {
   }
 
   async findByJoinCode(joinCode: string): Promise<SessionEntity | null> {
-    const doc = await this.sessionModel.findOne({ joinCode }).exec();
+    const doc = await this.sessionModel
+      .findOne({
+        $or: [{ joinCode }, { shareCode: joinCode }],
+      })
+      .exec();
     return doc ? this.toEntity(doc) : null;
   }
 
   async update(id: string, partial: Partial<SessionEntity>): Promise<SessionEntity | null> {
-    const doc = await this.sessionModel.findByIdAndUpdate(id, partial, { new: true }).exec();
+    const doc = await this.sessionModel
+      .findByIdAndUpdate(id, partial, { returnDocument: 'after' })
+      .exec();
     return doc ? this.toEntity(doc) : null;
   }
 
@@ -41,7 +47,7 @@ export class SessionRepository implements ISessionRepository {
       title: doc.title,
       description: doc.description,
       organizerId: doc.organizerId,
-      joinCode: doc.joinCode,
+      joinCode: doc.joinCode || (doc as unknown as { shareCode?: string }).shareCode || '',
       videoLink: doc.videoLink,
       maxUpvotesPerParticipant: doc.maxUpvotesPerParticipant,
       createdAt: (doc as any).createdAt,

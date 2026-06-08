@@ -20,6 +20,23 @@
     }
     .topbar__left h1 { font-size: 1.3rem; color: #2b6cb0; font-weight: 700; }
     .topbar__left p { font-size: 0.82rem; color: #718096; margin-top: 0.15rem; }
+    .session-summary {
+      margin-top: 0.45rem;
+      font-size: 0.86rem;
+      color: #4a5568;
+      line-height: 1.4;
+      max-width: 60ch;
+    }
+    .meeting-link-row {
+      margin-top: 0.35rem;
+      font-size: 0.82rem;
+    }
+    .meeting-link-row a {
+      color: #2b6cb0;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .meeting-link-row a:hover { text-decoration: underline; }
     .topbar__right { display: flex; align-items: center; gap: 0.75rem; }
     .badge-votes {
       background: #ebf8ff;
@@ -206,6 +223,10 @@
       <div class="topbar__left">
         <h1 id="session-title">Loading…</h1>
         <p id="participant-info"></p>
+        <p id="session-description" class="session-summary"></p>
+        <p id="meeting-link-row" class="meeting-link-row" style="display: none;">
+          Meeting link: <a id="meeting-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+        </p>
       </div>
       <div class="topbar__right">
         <span class="badge-votes" id="votes-badge"></span>
@@ -241,6 +262,11 @@
     // ── State ─────────────────────────────────────────────────────────────────
     const sessionId = sessionStorage.getItem('sessionId');
     const sessionTitle = sessionStorage.getItem('sessionTitle');
+    const sessionDescription = sessionStorage.getItem('sessionDescription') || '';
+    const sessionVideoLink =
+      sessionStorage.getItem('sessionVideoLink') ||
+      sessionStorage.getItem('sessionMeetingLink') ||
+      '';
     const participantId = sessionStorage.getItem('participantId');
     const participantName = sessionStorage.getItem('participantName');
     const maxUpvotes = parseInt(sessionStorage.getItem('maxUpvotes') || '3', 10);
@@ -251,6 +277,15 @@
 
     document.getElementById('session-title').textContent = sessionTitle || 'Session';
     document.getElementById('participant-info').textContent = 'Joined as ' + (participantName || 'Participant');
+    document.getElementById('session-description').textContent = sessionDescription || 'No session description provided.';
+
+    const meetingLinkRow = document.getElementById('meeting-link-row');
+    const meetingLink = document.getElementById('meeting-link');
+    if (sessionVideoLink) {
+      meetingLink.href = sessionVideoLink;
+      meetingLink.textContent = sessionVideoLink;
+      meetingLinkRow.style.display = 'block';
+    }
 
     // Track votes used locally (will reconcile from server data)
     let votesUsed = 0;
@@ -281,11 +316,20 @@
 
         const topics = body.data || [];
 
+        const orderedTopics = topics
+          .map((topic, index) => ({ topic, index }))
+          .sort((a, b) => {
+            const statusDelta = statusOrder(a.topic.status) - statusOrder(b.topic.status);
+            if (statusDelta !== 0) return statusDelta;
+            return a.index - b.index;
+          })
+          .map(item => item.topic);
+
         // Reconcile vote count from server
         votesUsed = topics.filter(t => t.upvotedBy && t.upvotedBy.includes(participantId)).length;
         updateVotesBadge();
 
-        if (topics.length === 0) {
+        if (orderedTopics.length === 0) {
           container.innerHTML = '<div class="empty-state"><strong>No topics yet</strong><p>Be the first to propose a topic!</p></div>';
           return;
         }
@@ -293,7 +337,7 @@
         const list = document.createElement('div');
         list.className = 'topic-list';
 
-        topics.forEach(topic => {
+        orderedTopics.forEach(topic => {
           list.appendChild(buildTopicCard(topic));
         });
 
@@ -308,6 +352,14 @@
       if (status === 'Active') return 'status-active';
       if (status === 'Done') return 'status-done';
       return 'status-todo';
+    }
+
+    function statusOrder(status) {
+      const normalized = (status || '').toLowerCase();
+      if (normalized === 'active') return 0;
+      if (normalized === 'todo') return 1;
+      if (normalized === 'done' || normalized === 'completed') return 2;
+      return 3;
     }
 
     function buildTopicCard(topic) {
