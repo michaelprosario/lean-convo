@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account – Lean Convo</title>
+  <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+  <div class="card">
+    <div class="card__logo">
+      <h1>Lean Convo</h1>
+      <p>Create your organizer account</p>
+    </div>
+
+    <div id="alert-error" class="alert alert-error" role="alert"></div>
+    <div id="alert-success" class="alert alert-success" role="alert"></div>
+
+    <form id="register-form" novalidate>
+      <div class="form-group">
+        <label for="displayName">Display Name</label>
+        <input
+          type="text"
+          id="displayName"
+          name="displayName"
+          placeholder="Jane Smith"
+          required
+          autocomplete="name"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="jane@example.com"
+          required
+          autocomplete="email"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password <span style="font-weight:400;color:#a0aec0">(min 8 characters)</span></label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="••••••••"
+          required
+          minlength="8"
+          autocomplete="new-password"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submit-btn">Create Account</button>
+    </form>
+
+    <div class="card__footer">
+      Already have an account? <a href="/login.html">Sign in</a>
+    </div>
+    <div class="card__footer" style="margin-top:0.5rem;">
+      <a href="/index.html" style="color:#718096;font-size:0.8rem;">← Back to home</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('register-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const alertError = document.getElementById('alert-error');
+    const alertSuccess = document.getElementById('alert-success');
+
+    function showError(msg) {
+      alertError.textContent = msg;
+      alertError.style.display = 'block';
+      alertSuccess.style.display = 'none';
+    }
+
+    function showSuccess(msg) {
+      alertSuccess.textContent = msg;
+      alertSuccess.style.display = 'block';
+      alertError.style.display = 'none';
+    }
+
+    function clearAlerts() {
+      alertError.style.display = 'none';
+      alertSuccess.style.display = 'none';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAlerts();
+
+      const displayName = document.getElementById('displayName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!displayName || !email || !password) {
+        showError('All fields are required.');
+        return;
+      }
+
+      if (password.length < 8) {
+        showError('Password must be at least 8 characters.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating account…';
+
+      try {
+        const res = await fetch('/auth/create-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ displayName, email, password }),
+        });
+
+        const body = await res.json();
+
+        if (res.ok && body.success) {
+          showSuccess('Account created! Redirecting to login…');
+          form.reset();
+          setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+        } else {
+          showError(body.errorMessage || body.message || 'Registration failed. Please try again.');
+        }
+      } catch {
+        showError('Network error. Please check your connection and try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
+      }
+    });
+  </script>
+</body>
+</html>

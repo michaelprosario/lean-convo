@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – Lean Convo</title>
+  <link rel="stylesheet" href="/css/auth.css" />
+  <style>
+    body { align-items: flex-start; padding: 2rem; }
+    .dashboard { max-width: 640px; margin: 0 auto; width: 100%; }
+    .dashboard h2 { font-size: 1.4rem; margin-bottom: 0.5rem; color: #2b6cb0; }
+    .dashboard p  { color: #718096; margin-bottom: 1.5rem; }
+    .btn-sm { width: auto; padding: 0.5rem 1.25rem; display: inline-block; }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <div class="card">
+      <div class="card__logo">
+        <h1>Lean Convo</h1>
+      </div>
+      <h2 id="welcome-msg">Welcome!</h2>
+      <p>You are signed in. Session management features are coming next.</p>
+      <button class="btn btn-primary btn-sm" id="logout-btn">Sign Out</button>
+    </div>
+  </div>
+
+  <script>
+    const displayName = sessionStorage.getItem('displayName');
+    if (!sessionStorage.getItem('accessToken')) {
+      window.location.href = '/login.html';
+    }
+    if (displayName) {
+      document.getElementById('welcome-msg').textContent = 'Welcome, ' + displayName + '!';
+    }
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      sessionStorage.clear();
+      window.location.href = '/index.html';
+    });
+  </script>
+</body>
+</html>

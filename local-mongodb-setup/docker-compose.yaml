@@ -46,7 +46,7 @@ services:
       # Named volume for persistent data storage across container restarts.
       - mongo_data:/data/db
       # Seed / init scripts placed here are executed once on first boot.
-      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ../scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
       - lean_convo_net
     healthcheck:

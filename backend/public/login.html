@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In – Lean Convo</title>
+  <link rel="stylesheet" href="/css/auth.css" />
+</head>
+<body>
+  <div class="card">
+    <div class="card__logo">
+      <h1>Lean Convo</h1>
+      <p>Sign in to manage your sessions</p>
+    </div>
+
+    <div id="alert-error" class="alert alert-error" role="alert"></div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          placeholder="jane@example.com"
+          required
+          autocomplete="email"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="••••••••"
+          required
+          autocomplete="current-password"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submit-btn">Sign In</button>
+    </form>
+
+    <div class="card__footer">
+      Don't have an account? <a href="/register.html">Create one</a>
+    </div>
+    <div class="card__footer" style="margin-top:0.5rem;">
+      <a href="/index.html" style="color:#718096;font-size:0.8rem;">← Back to home</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const alertError = document.getElementById('alert-error');
+
+    function showError(msg) {
+      alertError.textContent = msg;
+      alertError.style.display = 'block';
+    }
+
+    function clearAlerts() {
+      alertError.style.display = 'none';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAlerts();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showError('Email and password are required.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in…';
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const body = await res.json();
+
+        if (res.ok && body.success) {
+          // Store the JWT for subsequent authenticated requests
+          sessionStorage.setItem('accessToken', body.data.accessToken);
+          sessionStorage.setItem('userId', body.data.userId);
+          sessionStorage.setItem('displayName', body.data.displayName);
+          sessionStorage.setItem('email', body.data.email);
+
+          window.location.href = '/dashboard.html';
+        } else {
+          showError(body.errorMessage || body.message || 'Invalid email or password.');
+        }
+      } catch {
+        showError('Network error. Please check your connection and try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>

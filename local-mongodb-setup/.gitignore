@@ -1,0 +1,14 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# MongoDB data volume (if mounted locally)
+data/
+
+# Logs
+*.log
+logs/

@@ -17,4 +17,21 @@
 - Implement use cases for the following:
     - Create account
     - Login using existing account
+===
+please add gitignore files for our repositories
+===
+Do we have any user interface code for the following use cases?
+    - Create account
+    - Login using existing account
+===
+Create a README.md explaining all the getting started details for a new dev
+===
+
+I do not see any html/js user interface for registration, welcome, or login. are those things in place?
+
+===
+
+Add a splash screen for the app.  Help me connect with registration and login process.
+
+===
 
