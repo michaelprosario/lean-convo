@@ -35,3 +35,6 @@ Add a splash screen for the app.  Help me connect with registration and login pr
 
 ===
 
+- follow prompts/useCases.md
+- follow prompts/techPlan.md
+- build out backend and front-end enabling registered user to create a session.

@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Session, SessionSchema } from '../../infra/schemas/session.schema';
 import { SessionRepository } from '../../infra/repositories/session.repository';
 import { CreateSessionUseCase } from '../../core/use-cases/sessions/create-session.use-case';
+import { GetMySessionsUseCase } from '../../core/use-cases/sessions/get-my-sessions.use-case';
 import { SESSION_REPOSITORY } from '../../core/interfaces/session.repository.interface';
 import { SessionsController } from './sessions.controller';
 
@@ -15,6 +16,7 @@ import { SessionsController } from './sessions.controller';
   providers: [
     { provide: SESSION_REPOSITORY, useClass: SessionRepository },
     CreateSessionUseCase,
+    GetMySessionsUseCase,
   ],
 })
 export class SessionsModule {}
