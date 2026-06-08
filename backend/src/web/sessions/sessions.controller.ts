@@ -1,8 +1,10 @@
 import { Body, Controller, Post, Get, UseGuards, Request, HttpCode, HttpStatus } from '@nestjs/common';
 import { CreateSessionUseCase } from '../../core/use-cases/sessions/create-session.use-case';
 import { GetMySessionsUseCase } from '../../core/use-cases/sessions/get-my-sessions.use-case';
+import { GetSessionByCodeUseCase } from '../../core/use-cases/sessions/get-session-by-code.use-case';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { SessionResponseDto } from './dto/session-response.dto';
+import { SessionByCodeDto } from './dto/session-by-code.dto';
 import { CreateSessionCommand } from '../../core/commands/create-session.command';
 import { AppResult } from '../../core/results/app-result';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -12,6 +14,7 @@ export class SessionsController {
   constructor(
     private readonly createSessionUseCase: CreateSessionUseCase,
     private readonly getMySessionsUseCase: GetMySessionsUseCase,
+    private readonly getSessionByCodeUseCase: GetSessionByCodeUseCase,
   ) {}
 
   @Post('create')
@@ -73,5 +76,28 @@ export class SessionsController {
     }));
 
     return AppResult.ok(sessions);
+  }
+
+  @Post('by-code')
+  @HttpCode(HttpStatus.OK)
+  async getByCode(@Body() dto: SessionByCodeDto): Promise<AppResult<SessionResponseDto>> {
+    const result = await this.getSessionByCodeUseCase.execute(dto.joinCode);
+
+    if (!result.success) {
+      return AppResult.fail(result.errorMessage!);
+    }
+
+    const session = result.data!;
+    const responseDto: SessionResponseDto = {
+      id: session.id,
+      title: session.title,
+      description: session.description,
+      organizerId: session.organizerId,
+      joinCode: session.joinCode,
+      videoLink: session.videoLink,
+      maxUpvotesPerParticipant: session.maxUpvotesPerParticipant,
+      createdAt: session.createdAt,
+    };
+    return AppResult.ok(responseDto);
   }
 }

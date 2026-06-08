@@ -7,6 +7,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './web/auth/auth.module';
 import { SessionsModule } from './web/sessions/sessions.module';
+import { TopicsModule } from './web/topics/topics.module';
+import { ParticipantsModule } from './web/participants/participants.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { SessionsModule } from './web/sessions/sessions.module';
     ),
     AuthModule,
     SessionsModule,
+    TopicsModule,
+    ParticipantsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

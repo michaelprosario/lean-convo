@@ -5,6 +5,7 @@ import { Session, SessionSchema } from '../../infra/schemas/session.schema';
 import { SessionRepository } from '../../infra/repositories/session.repository';
 import { CreateSessionUseCase } from '../../core/use-cases/sessions/create-session.use-case';
 import { GetMySessionsUseCase } from '../../core/use-cases/sessions/get-my-sessions.use-case';
+import { GetSessionByCodeUseCase } from '../../core/use-cases/sessions/get-session-by-code.use-case';
 import { SESSION_REPOSITORY } from '../../core/interfaces/session.repository.interface';
 import { SessionsController } from './sessions.controller';
 
@@ -17,6 +18,7 @@ import { SessionsController } from './sessions.controller';
     { provide: SESSION_REPOSITORY, useClass: SessionRepository },
     CreateSessionUseCase,
     GetMySessionsUseCase,
+    GetSessionByCodeUseCase,
   ],
 })
 export class SessionsModule {}

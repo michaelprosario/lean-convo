@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Session – Lean Convo</title>
+  <link rel="stylesheet" href="/css/auth.css" />
+  <style>
+    body { align-items: flex-start; padding: 2rem; background: #f0f4f8; }
+    .page { max-width: 720px; margin: 0 auto; width: 100%; }
+
+    /* Top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .topbar__left h1 { font-size: 1.3rem; color: #2b6cb0; font-weight: 700; }
+    .topbar__left p { font-size: 0.82rem; color: #718096; margin-top: 0.15rem; }
+    .topbar__right { display: flex; align-items: center; gap: 0.75rem; }
+    .badge-votes {
+      background: #ebf8ff;
+      color: #2b6cb0;
+      border: 1.5px solid #bee3f8;
+      border-radius: 6px;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    /* Propose form */
+    .propose-card {
+      background: #fff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .propose-card h2 { font-size: 0.95rem; font-weight: 700; color: #4a5568; margin-bottom: 0.85rem; }
+    .propose-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .propose-row input, .propose-row textarea {
+      flex: 1;
+      min-width: 0;
+      padding: 0.6rem 0.8rem;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 7px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .propose-row input:focus, .propose-row textarea:focus { border-color: #3182ce; }
+    .propose-row textarea { resize: vertical; min-height: 60px; }
+    .propose-fields { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+    .btn-propose {
+      background: #2b6cb0;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 0.65rem 1.25rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      align-self: flex-end;
+      transition: background 0.2s;
+    }
+    .btn-propose:hover { background: #2c5282; }
+    .btn-propose:disabled { background: #a0aec0; cursor: not-allowed; }
+
+    /* Topics list */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .section-header h2 { font-size: 0.95rem; font-weight: 700; color: #4a5568; text-transform: uppercase; letter-spacing: 0.05em; }
+    .refresh-btn {
+      background: none;
+      border: none;
+      color: #718096;
+      font-size: 0.8rem;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 5px;
+      transition: color 0.2s;
+    }
+    .refresh-btn:hover { color: #2b6cb0; }
+
+    .topic-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .topic-card {
+      background: #fff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .topic-card:hover { border-color: #bee3f8; box-shadow: 0 2px 8px rgba(43,108,176,0.07); }
+
+    /* Vote column */
+    .vote-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 44px;
+      gap: 0.2rem;
+    }
+    .vote-btn {
+      background: none;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 6px;
+      padding: 0.3rem 0.55rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .vote-btn:hover:not(:disabled) { background: #ebf8ff; border-color: #3182ce; color: #2b6cb0; }
+    .vote-btn.voted { background: #2b6cb0; border-color: #2b6cb0; color: #fff; }
+    .vote-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .vote-count { font-size: 0.9rem; font-weight: 700; color: #2d3748; }
+
+    /* Topic body */
+    .topic-body { flex: 1; min-width: 0; }
+    .topic-title { font-weight: 700; color: #1a202c; font-size: 0.95rem; }
+    .topic-desc { font-size: 0.82rem; color: #718096; margin-top: 0.2rem; }
+    .topic-meta { font-size: 0.75rem; color: #a0aec0; margin-top: 0.35rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .topic-status {
+      display: inline-block;
+      padding: 0.1rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-todo { background: #edf2f7; color: #718096; }
+    .status-active { background: #c6f6d5; color: #276749; }
+    .status-done { background: #e2e8f0; color: #a0aec0; }
+
+    /* Topic actions (own topics) */
+    .topic-actions { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+    .btn-action {
+      background: none;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: #718096;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-action:hover { border-color: #cbd5e0; color: #4a5568; }
+    .btn-action.delete:hover { border-color: #fc8181; color: #e53e3e; }
+
+    /* Edit inline form */
+    .edit-form { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .edit-form input, .edit-form textarea {
+      padding: 0.5rem 0.75rem;
+      border: 1.5px solid #cbd5e0;
+      border-radius: 7px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .edit-form input:focus, .edit-form textarea:focus { border-color: #3182ce; }
+    .edit-form textarea { resize: vertical; min-height: 55px; }
+    .edit-form-actions { display: flex; gap: 0.4rem; }
+    .btn-save {
+      background: #2b6cb0; color: #fff; border: none; border-radius: 6px;
+      padding: 0.35rem 0.85rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-cancel-edit {
+      background: none; border: 1.5px solid #e2e8f0; border-radius: 6px; color: #718096;
+      padding: 0.35rem 0.75rem; font-size: 0.8rem; cursor: pointer;
+    }
+
+    /* Empty / loading */
+    .spinner { text-align: center; padding: 2rem; color: #a0aec0; font-size: 0.9rem; }
+    .empty-state {
+      text-align: center; padding: 2.5rem 1rem; color: #a0aec0;
+      background: #fff; border: 1.5px dashed #e2e8f0; border-radius: 10px;
+    }
+    .empty-state p { margin-top: 0.4rem; font-size: 0.875rem; }
+
+    /* Alert inline */
+    .inline-alert {
+      font-size: 0.82rem; color: #e53e3e; margin-top: 0.35rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <div class="topbar__left">
+        <h1 id="session-title">Loading…</h1>
+        <p id="participant-info"></p>
+      </div>
+      <div class="topbar__right">
+        <span class="badge-votes" id="votes-badge"></span>
+      </div>
+    </div>
+
+    <!-- Propose topic form -->
+    <div class="propose-card">
+      <h2>Propose a Topic</h2>
+      <div id="propose-alert" class="inline-alert"></div>
+      <div class="propose-row">
+        <div class="propose-fields">
+          <input type="text" id="propose-title" placeholder="Topic title (required)" maxlength="120" />
+          <textarea id="propose-desc" placeholder="Description (optional)" rows="2"></textarea>
+        </div>
+        <button class="btn-propose" id="propose-btn">Add Topic</button>
+      </div>
+    </div>
+
+    <!-- Topics section -->
+    <div class="section-header">
+      <h2>Topics</h2>
+      <button class="refresh-btn" id="refresh-btn">↻ Refresh</button>
+    </div>
+
+    <div id="topics-container">
+      <div class="spinner">Loading topics…</div>
+    </div>
+
+  </div>
+
+  <script>
+    // ── State ─────────────────────────────────────────────────────────────────
+    const sessionId = sessionStorage.getItem('sessionId');
+    const sessionTitle = sessionStorage.getItem('sessionTitle');
+    const participantId = sessionStorage.getItem('participantId');
+    const participantName = sessionStorage.getItem('participantName');
+    const maxUpvotes = parseInt(sessionStorage.getItem('maxUpvotes') || '3', 10);
+
+    if (!sessionId || !participantId) {
+      window.location.href = '/join.html';
+    }
+
+    document.getElementById('session-title').textContent = sessionTitle || 'Session';
+    document.getElementById('participant-info').textContent = 'Joined as ' + (participantName || 'Participant');
+
+    // Track votes used locally (will reconcile from server data)
+    let votesUsed = 0;
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.appendChild(document.createTextNode(str || ''));
+      return div.innerHTML;
+    }
+
+    function updateVotesBadge() {
+      const remaining = maxUpvotes - votesUsed;
+      document.getElementById('votes-badge').textContent = remaining + ' upvote' + (remaining !== 1 ? 's' : '') + ' remaining';
+    }
+
+    // ── Load Topics ───────────────────────────────────────────────────────────
+    async function loadTopics() {
+      const container = document.getElementById('topics-container');
+      try {
+        const res = await fetch('/topics/by-session/' + sessionId);
+        const body = await res.json();
+
+        if (!res.ok || !body.success) {
+          container.innerHTML = '<div class="empty-state"><strong>Could not load topics.</strong><p>' + escapeHtml(body.errorMessage || 'Please refresh.') + '</p></div>';
+          return;
+        }
+
+        const topics = body.data || [];
+
+        // Reconcile vote count from server
+        votesUsed = topics.filter(t => t.upvotedBy && t.upvotedBy.includes(participantId)).length;
+        updateVotesBadge();
+
+        if (topics.length === 0) {
+          container.innerHTML = '<div class="empty-state"><strong>No topics yet</strong><p>Be the first to propose a topic!</p></div>';
+          return;
+        }
+
+        const list = document.createElement('div');
+        list.className = 'topic-list';
+
+        topics.forEach(topic => {
+          list.appendChild(buildTopicCard(topic));
+        });
+
+        container.innerHTML = '';
+        container.appendChild(list);
+      } catch {
+        container.innerHTML = '<div class="empty-state"><strong>Network error</strong><p>Could not reach the server.</p></div>';
+      }
+    }
+
+    function statusClass(status) {
+      if (status === 'Active') return 'status-active';
+      if (status === 'Done') return 'status-done';
+      return 'status-todo';
+    }
+
+    function buildTopicCard(topic) {
+      const isOwn = topic.proposedBy === participantId;
+      const hasVoted = topic.upvotedBy && topic.upvotedBy.includes(participantId);
+      const canVote = !hasVoted && votesUsed < maxUpvotes;
+
+      const card = document.createElement('div');
+      card.className = 'topic-card';
+      card.dataset.topicId = topic.id;
+
+      card.innerHTML = `
+        <div class="vote-col">
+          <button class="vote-btn ${hasVoted ? 'voted' : ''}" data-topic-id="${escapeHtml(topic.id)}" ${!canVote && !hasVoted ? 'disabled' : ''} title="${hasVoted ? 'Already voted' : canVote ? 'Upvote' : 'No votes remaining'}">
+            ▲
+          </button>
+          <span class="vote-count">${topic.upvoteCount}</span>
+        </div>
+        <div class="topic-body">
+          <div class="topic-title">${escapeHtml(topic.title)}</div>
+          ${topic.description ? '<div class="topic-desc">' + escapeHtml(topic.description) + '</div>' : ''}
+          <div class="topic-meta">
+            <span class="topic-status ${statusClass(topic.status)}">${escapeHtml(topic.status)}</span>
+            ${isOwn ? '<span>Your topic</span>' : ''}
+          </div>
+          ${isOwn ? `
+            <div class="topic-actions">
+              <button class="btn-action edit-btn" data-topic-id="${escapeHtml(topic.id)}">Edit</button>
+              <button class="btn-action delete delete-btn" data-topic-id="${escapeHtml(topic.id)}">Delete</button>
+            </div>
+            <div class="edit-form" id="edit-form-${escapeHtml(topic.id)}" style="display:none;">
+              <input type="text" class="edit-title-input" value="${escapeHtml(topic.title)}" maxlength="120" />
+              <textarea class="edit-desc-input" rows="2">${escapeHtml(topic.description || '')}</textarea>
+              <div class="edit-form-actions">
+                <button class="btn-save save-edit-btn" data-topic-id="${escapeHtml(topic.id)}">Save</button>
+                <button class="btn-cancel-edit cancel-edit-btn" data-topic-id="${escapeHtml(topic.id)}">Cancel</button>
+              </div>
+              <div class="inline-alert edit-error-msg"></div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      // Wire up vote button
+      const voteBtn = card.querySelector('.vote-btn');
+      if (voteBtn && !hasVoted) {
+        voteBtn.addEventListener('click', () => handleUpvote(topic.id, card));
+      }
+
+      // Wire up edit/delete
+      if (isOwn) {
+        card.querySelector('.edit-btn').addEventListener('click', () => toggleEditForm(topic.id, card));
+        card.querySelector('.delete-btn').addEventListener('click', () => handleDelete(topic.id));
+        card.querySelector('.save-edit-btn').addEventListener('click', () => handleEdit(topic.id, card));
+        card.querySelector('.cancel-edit-btn').addEventListener('click', () => toggleEditForm(topic.id, card, false));
+      }
+
+      return card;
+    }
+
+    // ── Vote ──────────────────────────────────────────────────────────────────
+    async function handleUpvote(topicId, card) {
+      const voteBtn = card.querySelector('.vote-btn');
+      voteBtn.disabled = true;
+
+      try {
+        const res = await fetch('/topics/upvote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topicId, participantId }),
+        });
+        const body = await res.json();
+
+        if (!res.ok || !body.success) {
+          alert(body.errorMessage || 'Could not upvote. Please try again.');
+          voteBtn.disabled = false;
+          return;
+        }
+
+        // Refresh to reflect new state
+        await loadTopics();
+      } catch {
+        alert('Network error. Please try again.');
+        voteBtn.disabled = false;
+      }
+    }
+
+    // ── Edit ──────────────────────────────────────────────────────────────────
+    function toggleEditForm(topicId, card, show = undefined) {
+      const form = card.querySelector('#edit-form-' + topicId);
+      const actions = card.querySelector('.topic-actions');
+      const isShowing = form.style.display !== 'none';
+      const shouldShow = show !== undefined ? show : !isShowing;
+      form.style.display = shouldShow ? 'flex' : 'none';
+      form.style.flexDirection = 'column';
+      if (actions) actions.style.display = shouldShow ? 'none' : 'flex';
+    }
+
+    async function handleEdit(topicId, card) {
+      const form = card.querySelector('#edit-form-' + topicId);
+      const title = form.querySelector('.edit-title-input').value.trim();
+      const description = form.querySelector('.edit-desc-input').value.trim();
+      const errorMsg = form.querySelector('.edit-error-msg');
+      errorMsg.textContent = '';
+
+      if (!title) {
+        errorMsg.textContent = 'Title is required.';
+        return;
+      }
+
+      try {
+        const res = await fetch('/topics/edit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topicId, participantId, title, description }),
+        });
+        const body = await res.json();
+
+        if (!res.ok || !body.success) {
+          errorMsg.textContent = body.errorMessage || 'Could not save. Please try again.';
+          return;
+        }
+
+        await loadTopics();
+      } catch {
+        errorMsg.textContent = 'Network error. Please try again.';
+      }
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+    async function handleDelete(topicId) {
+      if (!confirm('Delete this topic? This cannot be undone.')) return;
+
+      try {
+        const res = await fetch('/topics/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topicId, participantId }),
+        });
+        const body = await res.json();
+
+        if (!res.ok || !body.success) {
+          alert(body.errorMessage || 'Could not delete. Please try again.');
+          return;
+        }
+
+        await loadTopics();
+      } catch {
+        alert('Network error. Please try again.');
+      }
+    }
+
+    // ── Propose ───────────────────────────────────────────────────────────────
+    document.getElementById('propose-btn').addEventListener('click', async () => {
+      const title = document.getElementById('propose-title').value.trim();
+      const description = document.getElementById('propose-desc').value.trim();
+      const alertEl = document.getElementById('propose-alert');
+      alertEl.textContent = '';
+
+      if (!title) {
+        alertEl.textContent = 'Topic title is required.';
+        return;
+      }
+
+      const btn = document.getElementById('propose-btn');
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+
+      try {
+        const res = await fetch('/topics/propose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, participantId, title, description }),
+        });
+        const body = await res.json();
+
+        if (!res.ok || !body.success) {
+          alertEl.textContent = body.errorMessage || 'Could not add topic.';
+          btn.disabled = false;
+          btn.textContent = 'Add Topic';
+          return;
+        }
+
+        document.getElementById('propose-title').value = '';
+        document.getElementById('propose-desc').value = '';
+        await loadTopics();
+      } catch {
+        alertEl.textContent = 'Network error. Please try again.';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Add Topic';
+    });
+
+    // ── Refresh ───────────────────────────────────────────────────────────────
+    document.getElementById('refresh-btn').addEventListener('click', loadTopics);
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    updateVotesBadge();
+    loadTopics();
+
+    // Auto-refresh every 10 seconds
+    setInterval(loadTopics, 10000);
+  </script>
+</body>
+</html>

@@ -38,3 +38,20 @@ Add a splash screen for the app.  Help me connect with registration and login pr
 - follow prompts/useCases.md
 - follow prompts/techPlan.md
 - build out backend and front-end enabling registered user to create a session.
+
+===
+
+- follow prompts/useCases.md
+- follow prompts/techPlan.md
+- Think about enabling participants to join a session given a valid session code
+    - participant can see session and topics from other UseGuards
+    - participants can add, edit, delete topics on a session
+    - participants can upvote topics
+- Document plan in activeSessionPlan.md
+
+===
+
+Update index.html - Enable user to navigate to "join session" 
+
+===
+
