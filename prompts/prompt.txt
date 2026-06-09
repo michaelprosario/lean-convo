@@ -120,3 +120,17 @@ Address the following error..
   }
 }
 
+===
+
+6/8
+- explore prompts/angular.md
+- explore frontend angular project
+- think about moving html/js features backend/public into well organized frontend angular project.
+- document plan in angularFrontEnd.md
+===
+- update frontend code to make it more responsive on mobile.
+===
+as an organizer, I should have a way to delete topics from a session.
+===
+- think about making a docker file and docker compose file for the backend
+- make sure to setup the docker file so that we can configure the mongo db parameters and other environment variables

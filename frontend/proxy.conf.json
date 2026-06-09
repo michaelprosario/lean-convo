@@ -1,0 +1,22 @@
+{
+  "/auth": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/sessions": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/topics": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/participants": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true
+  }
+}

@@ -1,0 +1,289 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap');
+
+:root {
+  --font-title: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --bg-app: linear-gradient(135deg, #090d16 0%, #0f172a 60%, #1e1b4b 100%);
+  
+  --panel-glass: rgba(15, 23, 42, 0.65);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glass-hover: rgba(255, 255, 255, 0.15);
+  --border-glass-focus: rgba(99, 102, 241, 0.4);
+  
+  --shadow-premium: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+
+  --accent-primary: #6366f1; /* Indigo */
+  --accent-primary-hover: #4f46e5;
+  --accent-secondary: #3b82f6; /* Blue */
+  --accent-secondary-hover: #2563eb;
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  
+  --status-todo: #475569;
+  --status-active: #10b981;
+  --status-done: #3b82f6;
+  
+  --alert-error-bg: rgba(239, 68, 68, 0.12);
+  --alert-error-border: rgba(239, 68, 68, 0.25);
+  --alert-error-text: #fca5a5;
+  
+  --alert-success-bg: rgba(16, 185, 129, 0.12);
+  --alert-success-border: rgba(16, 185, 129, 0.25);
+  --alert-success-text: #a7f3d0;
+}
+
+/* ===== Resets ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-x: hidden;
+}
+
+/* ===== Typography ===== */
+h1, h2, h3, h4 {
+  font-family: var(--font-title);
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: var(--accent-primary-hover);
+    text-decoration: underline;
+  }
+}
+
+/* ===== Layout: Premium Glass Card ===== */
+.card {
+  background: var(--panel-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: var(--shadow-premium);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    border-color: var(--border-glass-hover);
+    box-shadow: var(--shadow-premium), var(--shadow-glow);
+  }
+}
+
+.card__logo {
+  text-align: center;
+  margin-bottom: 2rem;
+  
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(to right, #a5b4fc, #818cf8, #6366f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+    font-weight: 800;
+  }
+  
+  p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+  }
+}
+
+/* ===== Form Controls ===== */
+.form-group {
+  margin-bottom: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+input, textarea, select {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--border-glass);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  
+  &::placeholder {
+    color: #4b5563;
+  }
+  
+  &:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  }
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* ===== Reusable Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+  
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+.btn-primary {
+  background: var(--accent-primary);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+  
+  &:hover:not(:disabled) {
+    background: var(--accent-primary-hover);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  }
+  
+  &:disabled {
+    background: #334155;
+    color: #64748b;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border-glass);
+  color: var(--text-main);
+  
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-muted);
+  }
+  
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+/* ===== Alert Widget ===== */
+.alert {
+  border-radius: 10px;
+  padding: 0.8rem 1.2rem;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+
+.alert-error {
+  background: var(--alert-error-bg);
+  border: 1px solid var(--alert-error-border);
+  color: var(--alert-error-text);
+}
+
+.alert-success {
+  background: var(--alert-success-bg);
+  border: 1px solid var(--alert-success-border);
+  color: var(--alert-success-text);
+}
+
+/* ===== Status Badges ===== */
+.status-pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+.status-Todo { background: var(--status-todo); }
+.status-Active { background: var(--status-active); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+.status-Done { background: var(--status-done); opacity: 0.8; }
+
+/* ===== Spinners & Utilities ===== */
+.spinner {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--accent-primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+  border: 1.5px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.02);
+  
+  p {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== Mobile Responsiveness Base ===== */
+@media (max-width: 480px) {
+  body {
+    padding: 1rem 0.75rem;
+  }
+  .card {
+    padding: 1.5rem 1.25rem;
+  }
+  .card__logo h1 {
+    font-size: 1.8rem;
+  }
+}
