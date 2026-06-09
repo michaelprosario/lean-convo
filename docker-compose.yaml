@@ -1,0 +1,28 @@
+    services:                                                                                             
+      backend:                                                                                            
+        build:                                                                                            
+          context: ./backend                                                                              
+          dockerfile: Dockerfile                                                                          
+        container_name: lean_convo_backend                                                                
+        restart: unless-stopped                                                                           
+        ports:                                                                                            
+          - "3001:3001"                                                                                   
+        environment:                                                                                      
+          PORT: 3001                                                                                      
+          JWT_SECRET: local-dev-secret-change-in-production                                               
+                                                                                                          
+          # Connect directly to the database service in the external network                              
+          MONGO_HOST: mongodb    # or 'lean_convo_mongo'                                                  
+          MONGO_PORT: 27017                                                                               
+          MONGO_DB: lean_convo                                                                            
+          MONGO_USER: lean_user                                                                           
+          MONGO_PASSWORD: change_me                                                                       
+          MONGO_AUTH_SOURCE: lean_convo                                                                   
+        networks:
+          - database_net
+    
+    networks:
+      # Tell Docker Compose to join the existing network created by the database project                  
+      database_net:
+        name: local-mongodb-setup_lean_convo_net
+        external: true
