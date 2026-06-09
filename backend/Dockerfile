@@ -42,12 +42,16 @@ COPY --chown=node:node --from=prod-deps /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=builder /usr/src/app/dist ./dist
 COPY --chown=node:node --from=builder /usr/src/app/public ./public
 COPY --chown=node:node docker-entrypoint.sh ./
+COPY --chown=node:node healthcheck.js ./
 
 RUN chmod +x docker-entrypoint.sh
 
 USER node
 
 EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node healthcheck.js
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "dist/main"]

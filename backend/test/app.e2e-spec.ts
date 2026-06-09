@@ -20,7 +20,19 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect('<script>window.location.href="/index.html"</script>');
+  });
+
+  it('/health (GET) - Success', () => {
+    return request(app.getHttpServer())
+      .get('/health')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.status).toBe('ok');
+        expect(res.body.checks.database).toBe('up');
+        expect(typeof res.body.uptime).toBe('number');
+        expect(res.body.timestamp).toBeDefined();
+      });
   });
 
   afterEach(async () => {

@@ -134,3 +134,7 @@ as an organizer, I should have a way to delete topics from a session.
 ===
 - think about making a docker file and docker compose file for the backend
 - make sure to setup the docker file so that we can configure the mongo db parameters and other environment variables
+===
+6/9
+- think about the edits we might need to have a health check on the backend service for docker/cloud operation.
+- draft these changes.
