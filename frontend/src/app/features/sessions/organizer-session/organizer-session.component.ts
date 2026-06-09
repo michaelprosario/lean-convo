@@ -112,6 +112,7 @@ import { Topic, TopicStatus } from '../../../core/models/topic.types';
                 <div class="actions-row">
                   <button class="btn btn-primary btn-xs" (click)="updateTopic(topic.id)">Save Changes</button>
                   <button class="btn btn-outline btn-xs" (click)="updateTopicStatus(topic.id)">Update Status Only</button>
+                  <button class="btn btn-outline btn-xs delete-btn" (click)="deleteTopic(topic.id)">Delete Topic</button>
                 </div>
                 
                 @if (topicMessages[topic.id]) {
@@ -213,6 +214,11 @@ import { Topic, TopicStatus } from '../../../core/models/topic.types';
       padding: 0.4rem 0.8rem;
       font-size: 0.8rem;
       border-radius: 6px;
+    }
+    .delete-btn:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      background-color: rgba(239, 68, 68, 0.05);
     }
     .spinner-container {
       text-align: center;
@@ -481,6 +487,21 @@ export class OrganizerSessionComponent implements OnInit {
         }
       },
       error: () => this.showTopicMessage(topicId, 'Failed to update status.', 'err')
+    });
+  }
+
+  deleteTopic(topicId: string): void {
+    if (!confirm('Delete this topic? This cannot be undone.')) return;
+
+    this.topicService.deleteTopicByOrganizer({ topicId }).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.loadTopics();
+        } else {
+          this.showTopicMessage(topicId, res.errorMessage || 'Failed to delete topic.', 'err');
+        }
+      },
+      error: () => this.showTopicMessage(topicId, 'Failed to delete topic.', 'err')
     });
   }
 

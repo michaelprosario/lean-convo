@@ -130,3 +130,5 @@ Address the following error..
 ===
 - update frontend code to make it more responsive on mobile.
 ===
+as an organizer, I should have a way to delete topics from a session.
+===

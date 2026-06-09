@@ -14,6 +14,7 @@ import { DeleteTopicUseCase } from '../../core/use-cases/topics/delete-topic.use
 import { GetSessionTopicsUseCase } from '../../core/use-cases/topics/get-session-topics.use-case';
 import { OrganizerEditTopicUseCase } from '../../core/use-cases/topics/organizer-edit-topic.use-case';
 import { SetTopicStatusUseCase } from '../../core/use-cases/topics/set-topic-status.use-case';
+import { OrganizerDeleteTopicUseCase } from '../../core/use-cases/topics/organizer-delete-topic.use-case';
 import { TOPIC_REPOSITORY } from '../../core/interfaces/topic.repository.interface';
 import { PARTICIPANT_REPOSITORY } from '../../core/interfaces/participant.repository.interface';
 import { SESSION_REPOSITORY } from '../../core/interfaces/session.repository.interface';
@@ -39,6 +40,7 @@ import { TopicsController } from './topics.controller';
     GetSessionTopicsUseCase,
     OrganizerEditTopicUseCase,
     SetTopicStatusUseCase,
+    OrganizerDeleteTopicUseCase,
   ],
 })
 export class TopicsModule {}

@@ -6,11 +6,13 @@ import { DeleteTopicUseCase } from '../../core/use-cases/topics/delete-topic.use
 import { GetSessionTopicsUseCase } from '../../core/use-cases/topics/get-session-topics.use-case';
 import { OrganizerEditTopicUseCase } from '../../core/use-cases/topics/organizer-edit-topic.use-case';
 import { SetTopicStatusUseCase } from '../../core/use-cases/topics/set-topic-status.use-case';
+import { OrganizerDeleteTopicUseCase } from '../../core/use-cases/topics/organizer-delete-topic.use-case';
 import { ProposeTopicCommand } from '../../core/commands/propose-topic.command';
 import { UpvoteTopicCommand } from '../../core/commands/upvote-topic.command';
 import { EditTopicCommand } from '../../core/commands/edit-topic.command';
 import { DeleteTopicCommand } from '../../core/commands/delete-topic.command';
 import { OrganizerEditTopicCommand } from '../../core/commands/organizer-edit-topic.command';
+import { OrganizerDeleteTopicCommand } from '../../core/commands/organizer-delete-topic.command';
 import { SetTopicStatusCommand } from '../../core/commands/set-topic-status.command';
 import { ProposeTopicDto } from './dto/propose-topic.dto';
 import { UpvoteTopicDto } from './dto/upvote-topic.dto';
@@ -18,6 +20,7 @@ import { EditTopicDto } from './dto/edit-topic.dto';
 import { DeleteTopicDto } from './dto/delete-topic.dto';
 import { OrganizerEditTopicDto } from './dto/organizer-edit-topic.dto';
 import { SetTopicStatusDto } from './dto/set-topic-status.dto';
+import { OrganizerDeleteTopicDto } from './dto/organizer-delete-topic.dto';
 import { TopicResponseDto } from './dto/topic-response.dto';
 import { AppResult } from '../../core/results/app-result';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -32,6 +35,7 @@ export class TopicsController {
     private readonly getSessionTopicsUseCase: GetSessionTopicsUseCase,
     private readonly organizerEditTopicUseCase: OrganizerEditTopicUseCase,
     private readonly setTopicStatusUseCase: SetTopicStatusUseCase,
+    private readonly organizerDeleteTopicUseCase: OrganizerDeleteTopicUseCase,
   ) {}
 
   @Post('propose')
@@ -146,6 +150,23 @@ export class TopicsController {
     }
 
     return AppResult.ok(this.toDto(result.data!));
+  }
+
+  @Post('organizer/delete')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async organizerDelete(
+    @Request() req: { user: { userId: string; email: string } },
+    @Body() dto: OrganizerDeleteTopicDto,
+  ): Promise<AppResult<void>> {
+    const command = new OrganizerDeleteTopicCommand(dto.topicId, req.user.userId);
+    const result = await this.organizerDeleteTopicUseCase.execute(command);
+
+    if (!result.success) {
+      return AppResult.fail(result.errorMessage!);
+    }
+
+    return AppResult.ok();
   }
 
   private toDto(topic: import('../../core/domain/topic.entity').TopicEntity): TopicResponseDto {

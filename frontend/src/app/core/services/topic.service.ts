@@ -48,4 +48,8 @@ export class TopicService {
   setTopicStatusByOrganizer(payload: { topicId: string; status: TopicStatus }): Observable<TopicResponse> {
     return this.http.post<TopicResponse>('/topics/organizer/set-status', payload);
   }
+
+  deleteTopicByOrganizer(payload: { topicId: string }): Observable<any> {
+    return this.http.post('/topics/organizer/delete', payload);
+  }
 }
