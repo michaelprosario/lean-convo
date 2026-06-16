@@ -15,6 +15,9 @@ import { Topic } from '../../../core/models/topic.types';
         <div class="topbar__left">
           <h1>{{ sessionTitle }}</h1>
           <p class="participant-badge">Joined as {{ participantName }}</p>
+          @if (sessionJoinCode) {
+            <p class="join-code-row">Join code: <span class="join-code">{{ sessionJoinCode }}</span></p>
+          }
           @if (sessionDescription) {
             <p class="session-desc">{{ sessionDescription }}</p>
           }
@@ -157,6 +160,21 @@ import { Topic } from '../../../core/models/topic.types';
       margin-top: 0.5rem;
       line-height: 1.4;
       max-width: 60ch;
+    }
+    .join-code-row {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .join-code {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px dashed rgba(56, 189, 248, 0.3);
+      border-radius: 6px;
+      padding: 0.1rem 0.45rem;
+      margin-left: 0.25rem;
     }
     .meeting-link-row {
       margin-top: 0.5rem;
@@ -445,6 +463,7 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
   // Cached context
   sessionId = '';
   sessionTitle = '';
+  sessionJoinCode = '';
   sessionDescription = '';
   sessionVideoLink = '';
   participantId = '';
@@ -503,6 +522,7 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
     this.sessionId = sid;
     this.participantId = pid;
     this.sessionTitle = sessionStorage.getItem('sessionTitle') || 'Session';
+    this.sessionJoinCode = sessionStorage.getItem('joinCode') || '';
     this.sessionDescription = sessionStorage.getItem('sessionDescription') || '';
     this.sessionVideoLink = sessionStorage.getItem('sessionVideoLink') || '';
     this.participantName = sessionStorage.getItem('participantName') || 'Participant';

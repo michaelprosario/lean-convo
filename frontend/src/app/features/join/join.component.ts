@@ -168,6 +168,7 @@ export class JoinComponent implements OnInit {
               sessionStorage.setItem('participantName', participant.name);
               sessionStorage.setItem('sessionId', session.id);
               sessionStorage.setItem('sessionTitle', session.title);
+              sessionStorage.setItem('joinCode', session.joinCode || this.joinCode);
               sessionStorage.setItem('sessionDescription', session.description || '');
               sessionStorage.setItem('sessionVideoLink', session.videoLink || '');
               sessionStorage.setItem('maxUpvotes', String(session.maxUpvotesPerParticipant));

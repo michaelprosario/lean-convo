@@ -139,6 +139,8 @@ as an organizer, I should have a way to delete topics from a session.
 - think about the edits we might need to have a health check on the backend service for docker/cloud operation.
 - draft these changes.
 
+===
+
 6/15
 The following server operations would work better if the actions used web sockets..
 - topics/propose
@@ -158,4 +160,8 @@ Document the plan for adding it in backendWebSocket.md
 - Think about the changes we would need to make for the angular front end to implement web sockets changes.
 - Document frontEndWebSocketsPlan.md
 
+===
+
+- Update frontend/src/app/features/sessions/participant-session/participant-session.component.ts
+- It should display the join code on the page for reference.
 
