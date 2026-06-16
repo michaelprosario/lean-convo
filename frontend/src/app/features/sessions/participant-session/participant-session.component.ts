@@ -1,8 +1,7 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TopicService } from '../../../core/services/topic.service';
-import { PollingService } from '../../../core/services/polling.service';
+import { TopicsRealtimeService } from '../../../core/services/topics-realtime.service';
 import { Topic } from '../../../core/models/topic.types';
 
 @Component({
@@ -55,7 +54,7 @@ import { Topic } from '../../../core/models/topic.types';
 
       <!-- Topics list -->
       <div class="topics-container">
-        @if (polling.isPolling() === false && orderedTopics().length === 0) {
+        @if (realtime.connectionState() !== 'connected' && orderedTopics().length === 0) {
           <div class="spinner-container">
             <span class="spinner"></span>
             <p>Loading topics...</p>
@@ -441,8 +440,7 @@ import { Topic } from '../../../core/models/topic.types';
 })
 export class ParticipantSessionComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
-  private readonly topicService = inject(TopicService);
-  protected readonly polling = inject(PollingService);
+  protected readonly realtime = inject(TopicsRealtimeService);
 
   // Cached context
   sessionId = '';
@@ -467,7 +465,7 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
 
   // Reactive computed signals
   readonly orderedTopics = computed(() => {
-    const list = this.polling.topics();
+    const list = this.realtime.topics();
     return [...list].sort((a, b) => {
       const statusOrder = (status: string) => {
         const s = status.toLowerCase();
@@ -485,7 +483,7 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
   });
 
   readonly votesUsed = computed(() => {
-    const list = this.polling.topics();
+    const list = this.realtime.topics();
     const pid = this.participantId;
     return list.filter(t => t.upvotedBy && t.upvotedBy.includes(pid)).length;
   });
@@ -510,19 +508,28 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
     this.participantName = sessionStorage.getItem('participantName') || 'Participant';
     this.maxUpvotes = parseInt(sessionStorage.getItem('maxUpvotes') || '3', 10);
 
-    // Start background polling (every 10 seconds)
-    this.polling.startPolling(this.sessionId, 10000);
+    void this.initializeRealtime();
   }
 
   ngOnDestroy(): void {
-    this.polling.stopPolling();
+    void this.realtime.disconnect(this.sessionId);
   }
 
-  forceRefresh(): void {
-    this.polling.startPolling(this.sessionId, 10000);
+  private async initializeRealtime(): Promise<void> {
+    const connection = await this.realtime.connect(this.sessionId, this.participantId);
+    if (!connection.success) {
+      this.proposeError.set(connection.errorMessage || 'Unable to connect to live updates.');
+    }
   }
 
-  addTopic(): void {
+  async forceRefresh(): Promise<void> {
+    const result = await this.realtime.requestSnapshot(this.sessionId, this.participantId);
+    if (result.success && result.data) {
+      this.realtime.topics.set(result.data);
+    }
+  }
+
+  async addTopic(): Promise<void> {
     const title = this.newTopicTitle.trim();
     const desc = this.newTopicDesc.trim();
 
@@ -534,27 +541,21 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
     this.proposing.set(true);
     this.proposeError.set(null);
 
-    this.topicService.proposeTopic({
+    const result = await this.realtime.proposeTopic({
       sessionId: this.sessionId,
       participantId: this.participantId,
       title,
       description: desc || undefined
-    }).subscribe({
-      next: (res) => {
-        this.proposing.set(false);
-        if (res.success) {
-          this.newTopicTitle = '';
-          this.newTopicDesc = '';
-          this.forceRefresh();
-        } else {
-          this.proposeError.set(res.errorMessage || 'Could not add topic.');
-        }
-      },
-      error: () => {
-        this.proposing.set(false);
-        this.proposeError.set('Network error. Failed to add topic.');
-      }
     });
+
+    this.proposing.set(false);
+    if (result.success) {
+      this.newTopicTitle = '';
+      this.newTopicDesc = '';
+      return;
+    }
+
+    this.proposeError.set(result.errorMessage || 'Could not add topic.');
   }
 
   hasVotedFor(topic: Topic): boolean {
@@ -572,32 +573,20 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
     return 'Upvote';
   }
 
-  upvoteTopic(topicId: string): void {
-    this.topicService.upvoteTopic({ topicId, participantId: this.participantId }).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.forceRefresh();
-        } else {
-          alert(res.errorMessage || 'Failed to upvote topic.');
-        }
-      },
-      error: () => alert('Failed to upvote topic.')
-    });
+  async upvoteTopic(topicId: string): Promise<void> {
+    const result = await this.realtime.upvoteTopic({ topicId, participantId: this.participantId });
+    if (!result.success) {
+      alert(result.errorMessage || 'Failed to upvote topic.');
+    }
   }
 
-  deleteTopic(topicId: string): void {
+  async deleteTopic(topicId: string): Promise<void> {
     if (!confirm('Delete this topic? This cannot be undone.')) return;
 
-    this.topicService.deleteTopic({ topicId, participantId: this.participantId }).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.forceRefresh();
-        } else {
-          alert(res.errorMessage || 'Failed to delete topic.');
-        }
-      },
-      error: () => alert('Failed to delete topic.')
-    });
+    const result = await this.realtime.deleteTopic({ topicId, participantId: this.participantId });
+    if (!result.success) {
+      alert(result.errorMessage || 'Failed to delete topic.');
+    }
   }
 
   startEditing(topic: Topic): void {
@@ -611,7 +600,7 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
     this.editingTopicId.set(null);
   }
 
-  saveEdit(topicId: string): void {
+  async saveEdit(topicId: string): Promise<void> {
     const title = this.editTitle.trim();
     const desc = this.editDesc.trim();
 
@@ -620,21 +609,18 @@ export class ParticipantSessionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.topicService.editTopicByParticipant({
+    const result = await this.realtime.editTopicByParticipant({
       topicId,
       participantId: this.participantId,
       title,
       description: desc || undefined
-    }).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.editingTopicId.set(null);
-          this.forceRefresh();
-        } else {
-          this.editError.set(res.errorMessage || 'Failed to save changes.');
-        }
-      },
-      error: () => this.editError.set('Failed to save changes.')
     });
+
+    if (result.success) {
+      this.editingTopicId.set(null);
+      return;
+    }
+
+    this.editError.set(result.errorMessage || 'Failed to save changes.');
   }
 }

@@ -1,8 +1,8 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SessionService } from '../../../core/services/session.service';
-import { TopicService } from '../../../core/services/topic.service';
+import { TopicsRealtimeService } from '../../../core/services/topics-realtime.service';
 import { Session } from '../../../core/models/session.types';
 import { Topic, TopicStatus } from '../../../core/models/topic.types';
 
@@ -313,11 +313,11 @@ import { Topic, TopicStatus } from '../../../core/models/topic.types';
     }
   `]
 })
-export class OrganizerSessionComponent implements OnInit {
+export class OrganizerSessionComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly sessionService = inject(SessionService);
-  private readonly topicService = inject(TopicService);
+  protected readonly realtime = inject(TopicsRealtimeService);
 
   sessionId = '';
   sessionTitle = '';
@@ -327,7 +327,7 @@ export class OrganizerSessionComponent implements OnInit {
   sessionJoinCode = '';
 
   activeSession: Session | null = null;
-  topics = signal<Topic[]>([]);
+  readonly topics = computed(() => this.realtime.topics());
 
   // Page level messaging
   sessionMessage = signal<string | null>(null);
@@ -344,6 +344,12 @@ export class OrganizerSessionComponent implements OnInit {
   topicMessages: { [key: string]: string } = {};
   topicMsgTypes: { [key: string]: 'ok' | 'err' | null } = {};
 
+  constructor() {
+    effect(() => {
+      this.syncTopicFormState(this.realtime.topics());
+    });
+  }
+
   ngOnInit(): void {
     const id = this.route.snapshot.queryParams['sessionId'];
     if (!id) {
@@ -352,13 +358,17 @@ export class OrganizerSessionComponent implements OnInit {
     }
     this.sessionId = id;
     this.loadSession();
-    this.loadTopics();
+    void this.loadTopics();
+  }
+
+  ngOnDestroy(): void {
+    void this.realtime.disconnect(this.sessionId);
   }
 
   onRefresh(): void {
     this.sessionMessage.set(null);
     this.loadSession();
-    this.loadTopics();
+    void this.loadTopics();
   }
 
   loadSession(): void {
@@ -384,25 +394,30 @@ export class OrganizerSessionComponent implements OnInit {
     });
   }
 
-  loadTopics(): void {
+  async loadTopics(): Promise<void> {
     this.loadingTopics.set(true);
-    this.topicService.getTopicsBySession(this.sessionId).subscribe({
-      next: (res) => {
-        this.loadingTopics.set(false);
-        if (res.success && res.data) {
-          this.topics.set(res.data);
-          
-          // Re-populate field binding trackers
-          res.data.forEach(t => {
-            this.topicTitles[t.id] = t.title;
-            this.topicDescriptions[t.id] = t.description || '';
-            this.topicStatuses[t.id] = t.status;
-            this.topicMessages[t.id] = '';
-            this.topicMsgTypes[t.id] = null;
-          });
-        }
-      },
-      error: () => this.loadingTopics.set(false)
+
+    const connection = await this.realtime.connect(this.sessionId);
+    this.loadingTopics.set(false);
+
+    if (!connection.success) {
+      this.showSessionMessage(connection.errorMessage || 'Failed to connect to live topic stream.', 'err');
+      return;
+    }
+
+    if (connection.data) {
+      this.realtime.topics.set(connection.data);
+    }
+  }
+
+  private syncTopicFormState(list: Topic[]): void {
+    list.forEach((t) => {
+      this.topicTitles[t.id] = t.title;
+      this.topicDescriptions[t.id] = t.description || '';
+      this.topicStatuses[t.id] = t.status;
+
+      this.topicMessages[t.id] = this.topicMessages[t.id] || '';
+      this.topicMsgTypes[t.id] = this.topicMsgTypes[t.id] || null;
     });
   }
 
@@ -449,7 +464,7 @@ export class OrganizerSessionComponent implements OnInit {
     });
   }
 
-  updateTopic(topicId: string): void {
+  async updateTopic(topicId: string): Promise<void> {
     const title = this.topicTitles[topicId]?.trim();
     const description = this.topicDescriptions[topicId]?.trim();
 
@@ -458,51 +473,39 @@ export class OrganizerSessionComponent implements OnInit {
       return;
     }
 
-    this.topicService.editTopicByOrganizer({
+    const result = await this.realtime.editTopicByOrganizer({
       topicId,
       title,
       description: description || undefined
-    }).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.showTopicMessage(topicId, 'Topic content updated.', 'ok');
-          this.loadTopics();
-        } else {
-          this.showTopicMessage(topicId, res.errorMessage || 'Failed to update topic.', 'err');
-        }
-      },
-      error: () => this.showTopicMessage(topicId, 'Failed to update topic.', 'err')
     });
+
+    if (result.success) {
+      this.showTopicMessage(topicId, 'Topic content updated.', 'ok');
+      return;
+    }
+
+    this.showTopicMessage(topicId, result.errorMessage || 'Failed to update topic.', 'err');
   }
 
-  updateTopicStatus(topicId: string): void {
+  async updateTopicStatus(topicId: string): Promise<void> {
     const status = this.topicStatuses[topicId];
-    this.topicService.setTopicStatusByOrganizer({ topicId, status }).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.showTopicMessage(topicId, `Topic status updated to ${status}.`, 'ok');
-          this.loadTopics();
-        } else {
-          this.showTopicMessage(topicId, res.errorMessage || 'Failed to update status.', 'err');
-        }
-      },
-      error: () => this.showTopicMessage(topicId, 'Failed to update status.', 'err')
-    });
+    const result = await this.realtime.setTopicStatusByOrganizer({ topicId, status });
+
+    if (result.success) {
+      this.showTopicMessage(topicId, `Topic status updated to ${status}.`, 'ok');
+      return;
+    }
+
+    this.showTopicMessage(topicId, result.errorMessage || 'Failed to update status.', 'err');
   }
 
-  deleteTopic(topicId: string): void {
+  async deleteTopic(topicId: string): Promise<void> {
     if (!confirm('Delete this topic? This cannot be undone.')) return;
 
-    this.topicService.deleteTopicByOrganizer({ topicId }).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.loadTopics();
-        } else {
-          this.showTopicMessage(topicId, res.errorMessage || 'Failed to delete topic.', 'err');
-        }
-      },
-      error: () => this.showTopicMessage(topicId, 'Failed to delete topic.', 'err')
-    });
+    const result = await this.realtime.deleteTopicByOrganizer({ topicId });
+    if (!result.success) {
+      this.showTopicMessage(topicId, result.errorMessage || 'Failed to delete topic.', 'err');
+    }
   }
 
   showTopicMessage(topicId: string, text: string, type: 'ok' | 'err'): void {

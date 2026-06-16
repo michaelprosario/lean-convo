@@ -42,5 +42,18 @@ import { TopicsController } from './topics.controller';
     SetTopicStatusUseCase,
     OrganizerDeleteTopicUseCase,
   ],
+  exports: [
+    TOPIC_REPOSITORY,
+    PARTICIPANT_REPOSITORY,
+    SESSION_REPOSITORY,
+    ProposeTopicUseCase,
+    UpvoteTopicUseCase,
+    EditTopicUseCase,
+    DeleteTopicUseCase,
+    GetSessionTopicsUseCase,
+    OrganizerEditTopicUseCase,
+    SetTopicStatusUseCase,
+    OrganizerDeleteTopicUseCase,
+  ],
 })
 export class TopicsModule {}

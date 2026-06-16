@@ -9,6 +9,7 @@ import { AuthModule } from './web/auth/auth.module';
 import { SessionsModule } from './web/sessions/sessions.module';
 import { TopicsModule } from './web/topics/topics.module';
 import { ParticipantsModule } from './web/participants/participants.module';
+import { TopicsRealtimeModule } from './web/topics-realtime/topics-realtime.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ParticipantsModule } from './web/participants/participants.module';
     SessionsModule,
     TopicsModule,
     ParticipantsModule,
+    TopicsRealtimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

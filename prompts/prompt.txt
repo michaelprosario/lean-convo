@@ -138,3 +138,24 @@ as an organizer, I should have a way to delete topics from a session.
 6/9
 - think about the edits we might need to have a health check on the backend service for docker/cloud operation.
 - draft these changes.
+
+6/15
+The following server operations would work better if the actions used web sockets..
+- topics/propose
+- topics/upvote
+- topics/edit
+- topics/delete
+- topics/by-session
+- topics/organizer/edit
+- topics/organizer/set-status
+- topics/organizer/delete
+
+Think about how we might implement web socket gateway for the backend.
+Document the plan for adding it in backendWebSocket.md
+===
+
+- Explore prompts/backendWebSocket.md
+- Think about the changes we would need to make for the angular front end to implement web sockets changes.
+- Document frontEndWebSocketsPlan.md
+
+
