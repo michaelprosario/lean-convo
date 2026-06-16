@@ -165,3 +165,9 @@ Document the plan for adding it in backendWebSocket.md
 - Update frontend/src/app/features/sessions/participant-session/participant-session.component.ts
 - It should display the join code on the page for reference.
 
+===
+
+- Update frontend
+- I ran into a bug where the organizer who was logged in could not join a session.
+- Is there a broken link?
+

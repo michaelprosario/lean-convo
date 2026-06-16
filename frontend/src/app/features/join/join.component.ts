@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SessionService } from '../../core/services/session.service';
 import { ParticipantService } from '../../core/services/participant.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-join',
@@ -70,7 +71,11 @@ import { ParticipantService } from '../../core/services/participant.service';
 
       <div class="divider-row">or</div>
       <p class="footer-msg">
-        Are you an organizer? <a routerLink="/login">Sign in</a>
+        @if (auth.isAuthenticated()) {
+          Back to <a routerLink="/dashboard">your dashboard</a>
+        } @else {
+          Are you an organizer? <a routerLink="/login">Sign in</a>
+        }
       </p>
     </div>
   `,
@@ -115,6 +120,7 @@ export class JoinComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly sessionService = inject(SessionService);
   private readonly participantService = inject(ParticipantService);
+  readonly auth = inject(AuthService);
 
   joinCode = '';
   name = '';
@@ -124,6 +130,10 @@ export class JoinComponent implements OnInit {
   errorMessage = signal<string | null>(null);
 
   ngOnInit(): void {
+    if (this.auth.isAuthenticated() && !this.name) {
+      this.name = this.auth.displayName();
+    }
+
     this.route.queryParams.subscribe(params => {
       if (params['code']) {
         this.joinCode = params['code'].toUpperCase();
