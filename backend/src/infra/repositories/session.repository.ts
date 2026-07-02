@@ -41,6 +41,11 @@ export class SessionRepository implements ISessionRepository {
     return doc ? this.toEntity(doc) : null;
   }
 
+  async delete(id: string): Promise<boolean> {
+    const result = await this.sessionModel.findByIdAndDelete(id).exec();
+    return result !== null;
+  }
+
   private toEntity(doc: SessionDocument): SessionEntity {
     return new SessionEntity({
       id: (doc._id as object).toString(),

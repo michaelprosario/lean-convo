@@ -26,4 +26,10 @@ export class SessionService {
   exportSession(sessionId: string): Observable<ExportSessionResponse> {
     return this.http.get<ExportSessionResponse>(`/sessions/${encodeURIComponent(sessionId)}/export`);
   }
+
+  deleteSession(sessionId: string): Observable<{ success: boolean; errorMessage?: string }> {
+    return this.http.delete<{ success: boolean; errorMessage?: string }>(
+      `/sessions/${encodeURIComponent(sessionId)}`,
+    );
+  }
 }

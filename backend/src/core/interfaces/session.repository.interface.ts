@@ -6,6 +6,7 @@ export interface ISessionRepository {
   findByOrganizerId(organizerId: string): Promise<SessionEntity[]>;
   findByJoinCode(joinCode: string): Promise<SessionEntity | null>;
   update(id: string, partial: Partial<SessionEntity>): Promise<SessionEntity | null>;
+  delete(id: string): Promise<boolean>;
 }
 
 export const SESSION_REPOSITORY = 'ISessionRepository';

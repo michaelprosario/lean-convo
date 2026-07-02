@@ -63,6 +63,7 @@ import { Session } from '../../core/models/session.types';
                   <span class="session-card__code" title="Join code">{{ session.joinCode }}</span>
                   <a [routerLink]="['/organizer-session']" [queryParams]="{ sessionId: session.id }" class="btn btn-outline btn-sm card-btn">Manage</a>
                   <a [routerLink]="['/join']" [queryParams]="{ code: session.joinCode }" class="btn btn-outline btn-sm card-btn hover-sky">Join</a>
+                  <button class="btn btn-outline btn-sm card-btn delete-btn" (click)="deleteSession(session.id)">Delete</button>
                 </div>
               </div>
             }
@@ -209,6 +210,11 @@ import { Session } from '../../core/models/session.types';
       color: #38bdf8;
       background: rgba(56, 189, 248, 0.05);
     }
+    .delete-btn:hover {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      background-color: rgba(239, 68, 68, 0.05);
+    }
     
     @media (max-width: 600px) {
       .topbar {
@@ -285,5 +291,20 @@ export class DashboardComponent implements OnInit {
       return desc.substring(0, 60) + '...';
     }
     return desc;
+  }
+
+  deleteSession(sessionId: string): void {
+    if (!confirm('Delete this session and all its topics? This cannot be undone.')) return;
+
+    this.sessionService.deleteSession(sessionId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.sessions.update((list) => list.filter((s) => s.id !== sessionId));
+        } else {
+          this.errorMessage.set(res.errorMessage || 'Failed to delete session.');
+        }
+      },
+      error: () => this.errorMessage.set('Network error. Failed to delete session.')
+    });
   }
 }

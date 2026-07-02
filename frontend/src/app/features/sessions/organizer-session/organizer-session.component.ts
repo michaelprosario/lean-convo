@@ -61,6 +61,9 @@ import { Topic, TopicStatus } from '../../../core/models/topic.types';
           </button>
           <button class="btn btn-outline btn-auto" (click)="exportJson()">Export JSON</button>
           <button class="btn btn-outline btn-auto" (click)="exportCsv()">Export CSV</button>
+          <button class="btn btn-outline btn-auto delete-btn" [disabled]="deletingSession()" (click)="deleteSession()">
+            {{ deletingSession() ? 'Deleting...' : 'Delete Session' }}
+          </button>
         </div>
       </section>
 
@@ -335,6 +338,7 @@ export class OrganizerSessionComponent implements OnInit, OnDestroy {
 
   // Form states
   savingSession = signal(false);
+  deletingSession = signal(false);
   loadingTopics = signal(false);
 
   // Dicts to hold temporary input values for topic items
@@ -506,6 +510,28 @@ export class OrganizerSessionComponent implements OnInit, OnDestroy {
     if (!result.success) {
       this.showTopicMessage(topicId, result.errorMessage || 'Failed to delete topic.', 'err');
     }
+  }
+
+  deleteSession(): void {
+    if (!confirm('Delete this entire session and all its topics? This cannot be undone.')) return;
+
+    this.deletingSession.set(true);
+    this.sessionMessage.set(null);
+
+    this.sessionService.deleteSession(this.sessionId).subscribe({
+      next: (res) => {
+        this.deletingSession.set(false);
+        if (res.success) {
+          void this.router.navigate(['/dashboard']);
+        } else {
+          this.showSessionMessage(res.errorMessage || 'Failed to delete session.', 'err');
+        }
+      },
+      error: () => {
+        this.deletingSession.set(false);
+        this.showSessionMessage('Network error. Failed to delete session.', 'err');
+      }
+    });
   }
 
   showTopicMessage(topicId: string, text: string, type: 'ok' | 'err'): void {

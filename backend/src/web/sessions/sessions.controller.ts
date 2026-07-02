@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, UseGuards, Request, HttpCode, HttpStatus, Param } from '@nestjs/common';
+import { Body, Controller, Post, Get, Delete, UseGuards, Request, HttpCode, HttpStatus, Param } from '@nestjs/common';
 import { CreateSessionUseCase } from '../../core/use-cases/sessions/create-session.use-case';
 import { GetMySessionsUseCase } from '../../core/use-cases/sessions/get-my-sessions.use-case';
 import { GetSessionByCodeUseCase } from '../../core/use-cases/sessions/get-session-by-code.use-case';
@@ -7,6 +7,7 @@ import {
   ExportSessionDetailsUseCase,
   type ExportSessionDetailsResult,
 } from '../../core/use-cases/sessions/export-session-details.use-case';
+import { DeleteSessionUseCase } from '../../core/use-cases/sessions/delete-session.use-case';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { SessionResponseDto } from './dto/session-response.dto';
 import { SessionByCodeDto } from './dto/session-by-code.dto';
@@ -25,6 +26,7 @@ export class SessionsController {
     private readonly getSessionByCodeUseCase: GetSessionByCodeUseCase,
     private readonly editSessionUseCase: EditSessionUseCase,
     private readonly exportSessionDetailsUseCase: ExportSessionDetailsUseCase,
+    private readonly deleteSessionUseCase: DeleteSessionUseCase,
   ) {}
 
   @Post('create')
@@ -150,6 +152,20 @@ export class SessionsController {
     }
 
     return AppResult.ok(this.toSessionExportResponseDto(result.data!));
+  }
+
+  @Delete(':sessionId')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async deleteSession(
+    @Request() req: { user: { userId: string; email: string } },
+    @Param('sessionId') sessionId: string,
+  ): Promise<AppResult<void>> {
+    const result = await this.deleteSessionUseCase.execute(sessionId, req.user.userId);
+    if (!result.success) {
+      return AppResult.fail(result.errorMessage!);
+    }
+    return AppResult.ok();
   }
 
   private toSessionResponseDto(session: import('../../core/domain/session.entity').SessionEntity): SessionResponseDto {

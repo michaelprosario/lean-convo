@@ -10,6 +10,7 @@ import { GetMySessionsUseCase } from '../../core/use-cases/sessions/get-my-sessi
 import { GetSessionByCodeUseCase } from '../../core/use-cases/sessions/get-session-by-code.use-case';
 import { EditSessionUseCase } from '../../core/use-cases/sessions/edit-session.use-case';
 import { ExportSessionDetailsUseCase } from '../../core/use-cases/sessions/export-session-details.use-case';
+import { DeleteSessionUseCase } from '../../core/use-cases/sessions/delete-session.use-case';
 import { SESSION_REPOSITORY } from '../../core/interfaces/session.repository.interface';
 import { TOPIC_REPOSITORY } from '../../core/interfaces/topic.repository.interface';
 import { SessionsController } from './sessions.controller';
@@ -30,6 +31,7 @@ import { SessionsController } from './sessions.controller';
     GetSessionByCodeUseCase,
     EditSessionUseCase,
     ExportSessionDetailsUseCase,
+    DeleteSessionUseCase,
   ],
 })
 export class SessionsModule {}

@@ -1,3 +1,11 @@
+7/1
+As a organizer, I should be able to delete a lean conversation to remove it from the system
+- consider backend changes
+- consider front changes
+- document in deleteSessionPlan.md
+
+====
+
 6/7
 - follow prompts/cleanArchitecture.md
 - leverage insight from prompts/nestJs.md
